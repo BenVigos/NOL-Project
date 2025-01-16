@@ -51,14 +51,14 @@ test_dataset_size = len(test_dataset)
 # Initialize a neural network with some layers and the default activation functions.
 neural_network = NeuralNetwork(
     layers=[784, 256, 128, 64, 10],
-    activation_functions=[logi, logi, logi, softmax], mass=-0.1
+    activation_functions=[logi, logi, logi, softmax], mass=9e-1
 )
 
 # Store the initialized network, so that we can compare the trained with the randomly initialized.
 neural_network_old = copy.deepcopy(neural_network)
 
 # Set training configuration
-learning_rate = 3e-3
+learning_rate = 3e-1
 epochs = 10
 
 # Do the full training algorithm
@@ -95,7 +95,7 @@ for epoch in range(1, epochs+1):
         loss.backward()
 
         # Update the weights and biases using the chosen algorithm, in this case gradient descent.
-        neural_network.gradient_descent(learning_rate)
+        neural_network.nesterov_descent(learning_rate)
 
         # Store the loss for this batch.
         train_loss += loss.data
@@ -207,7 +207,7 @@ plt.legend()
 # Plot of train vs test accuracies on the x-axis but with different y-axis
 figure, ax1 = plt.subplots()
 color = "tab:blue"
-ax1.set_title("Loss: train vs test")
+ax1.set_title("Accuracy: train vs test")
 ax1.semilogy(np.array(range(1, epochs+1)), train_accuracies, color=color, label="train")
 ax1.set_ylabel("Train loss", color=color)
 ax1.tick_params(axis='y', labelcolor=color)

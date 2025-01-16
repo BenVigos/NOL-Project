@@ -54,9 +54,14 @@ class NeuralNetwork:
                           expr=f"$((\u03B4^T)_W)^{{{i}}}$"))
 
     def __call__(self, x):
-        for (weight, bias, activation_function) in zip(self.weights, self.biases, self.activation_functions):
-            x = activation_function(x @ weight + bias)
-        return x
+        if self.mass == 0:
+            for (weight, bias, activation_function) in zip(self.weights, self.biases, self.activation_functions):
+                x = activation_function(x @ weight + bias)
+            return x
+        else:
+            for (weight, weight_delta, bias, bias_delta, activation_function) in zip(self.weights, self.weight_deltas, self.biases, self.bias_deltas, self.activation_functions):
+                x = activation_function(x @ (weight + (- self.mass) * weight_delta) + bias + (- self.mass) * bias_delta)
+            return x
 
     def reset_gradients(self):
         for weight in self.weights:
@@ -65,25 +70,17 @@ class NeuralNetwork:
             bias.reset_grad()
 
     def gradient_descent(self, learning_rate):
-        if self.mass >= 0:
-            self.nesterov_descent(learning_rate)
-        else:
-            for weight in self.weights:
-                weight.data -= learning_rate * weight.grad
-            for bias in self.biases:
-                bias.data -= learning_rate * bias.grad
+        for weight in self.weights:
+            weight.data -= learning_rate * weight.grad
+        for bias in self.biases:
+            bias.data -= learning_rate * bias.grad
 
     def nesterov_descent(self, learning_rate):
-
         for i, weight in enumerate(self.weights):
             delta = self.weight_deltas[i]
-            lookahead_weight = copy.deepcopy(weight)
-            lookahead_weight.data = weight.data - self.mass * delta.data
-            delta.data = delta.data * self.mass + learning_rate * lookahead_weight.grad
+            delta.data = delta.data * self.mass + learning_rate * weight.grad
             weight.data -= delta.data
         for i, bias in enumerate(self.biases):
             delta = self.bias_deltas[i]
-            lookahead_bias = copy.deepcopy(bias)
-            lookahead_bias.data = bias.data - self.mass * delta.data
-            delta.data = delta.data * self.mass + learning_rate * lookahead_bias.grad
+            delta.data = delta.data * self.mass + learning_rate * bias.grad
             bias.data -= bias.grad
