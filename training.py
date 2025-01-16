@@ -51,7 +51,7 @@ test_dataset_size = len(test_dataset)
 # Initialize a neural network with some layers and the default activation functions.
 neural_network = NeuralNetwork(
     layers=[784, 256, 128, 64, 10],
-    activation_functions=[logi, logi, logi, softmax], mass=9e-1
+    activation_functions=[logi, logi, logi, softmax], mass=0
 )
 
 # Store the initialized network, so that we can compare the trained with the randomly initialized.

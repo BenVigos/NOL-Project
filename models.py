@@ -54,14 +54,9 @@ class NeuralNetwork:
                           expr=f"$((\u03B4^T)_W)^{{{i}}}$"))
 
     def __call__(self, x):
-        if self.mass == 0:
-            for (weight, bias, activation_function) in zip(self.weights, self.biases, self.activation_functions):
-                x = activation_function(x @ weight + bias)
-            return x
-        else:
-            for (weight, weight_delta, bias, bias_delta, activation_function) in zip(self.weights, self.weight_deltas, self.biases, self.bias_deltas, self.activation_functions):
-                x = activation_function(x @ (weight + (- self.mass) * weight_delta) + bias + (- self.mass) * bias_delta)
-            return x
+        for (weight, weight_delta, bias, bias_delta, activation_function) in zip(self.weights, self.weight_deltas, self.biases, self.bias_deltas, self.activation_functions):
+            x = activation_function(x @ (weight + (- self.mass) * weight_delta) + bias + (- self.mass) * bias_delta)
+        return x
 
     def reset_gradients(self):
         for weight in self.weights:
