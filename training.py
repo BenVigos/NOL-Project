@@ -106,7 +106,7 @@ for epoch in range(1, epochs+1):
 
         # Update the weights and biases using the chosen algorithm,
         # in this case gradient descent.
-        cw, cb = neural_network.adagrad(learning_rate, cw, cb)
+        neural_network.adagrad(learning_rate, cw, cb)
         #neural_network.gradient_descent(learning_rate)
 
         # Store the loss for this batch.
