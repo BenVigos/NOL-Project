@@ -62,8 +62,8 @@ class Value:
         else:
             result_value = self.data * other
             result_expr = f"{self.expr}*{other}"
-            children = (self)
-        result = Value(result_value, result_expr, (self,))
+            children = (self,)
+        result = Value(result_value, result_expr, children)
 
         def _backward_gradient_step():
             if isinstance(other, Value):

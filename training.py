@@ -41,17 +41,17 @@ test_labels[np.arange(10_000), test_y] = 1
 # items, it takes whatever it still can. With 100 images in our dataset and a batch size of 32, it will be batches of 
 # 32, 32, 32, and 4.
 train_dataset = list(zip(train_images, train_labels))
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, drop_last=False)
+train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, drop_last=False)
 train_dataset_size = len(train_dataset)
 
 test_dataset = list(zip(test_images, test_labels))
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True, drop_last=False)
+test_loader = DataLoader(test_dataset, batch_size=256, shuffle=True, drop_last=False)
 test_dataset_size = len(test_dataset)
 
 # Initialize a neural network with some layers and the default activation functions.
 neural_network = NeuralNetwork(
     layers=[784, 256, 128, 64, 10],
-    activation_functions=[logi, logi, logi, softmax], mass=5e-1
+    activation_functions=[logi, logi, logi, softmax], mass=4e-1
 )
 
 # Store the initialized network, so that we can compare the trained with the randomly initialized.
