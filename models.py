@@ -52,10 +52,10 @@ class NeuralNetwork:
             bias.data -= learning_rate * bias.grad
 
     def adagrad(self, learning_rate, cw, cb):
-        for weight, c in zip(self.weights, cw):
-            c += np.square(weight.grad)
-            weight.data -= (learning_rate / np.sqrt(0.1 + c - np.square(weight.grad))) * weight.grad
-        for bias, c2 in zip(self.weights, cb):
-            c2 += np.square(bias.grad)
-            bias.data -= (learning_rate / np.sqrt(0.1 + c2 - np.square(bias.grad))) * bias.grad
+        for index, weight in enumerate(self.weights):
+            cw[index] += np.square(weight.grad)
+            weight.data -= (learning_rate / np.sqrt(0.1 + cw[index] - np.square(weight.grad))) * weight.grad
+        for k, bias in enumerate(self.biases):
+            cb[k] += np.square(bias.grad)
+            bias.data -= (learning_rate / np.sqrt(0.1 + cb[k] - np.square(bias.grad))) * bias.grad
         return cw, cb
