@@ -58,4 +58,3 @@ class NeuralNetwork:
         for k, bias in enumerate(self.biases):
             cb[k] += np.square(bias.grad)
             bias.data -= (learning_rate / np.sqrt(0.1 + cb[k] - np.square(bias.grad))) * bias.grad
-        return cw, cb
