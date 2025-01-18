@@ -1,4 +1,5 @@
 import copy
+import itertools
 from pathlib import Path
 
 import numpy as np
@@ -42,28 +43,64 @@ test_labels[np.arange(10_000), test_y] = 1
 # items, it takes whatever it still can. With 100 images in our dataset and a batch size of 32, it will be batches of
 # 32, 32, 32, and 4.
 train_dataset = list(zip(train_images, train_labels))
-train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, drop_last=False)
+train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, drop_last=False)
 train_dataset_size = len(train_dataset)
 
 test_dataset = list(zip(test_images, test_labels))
-test_loader = DataLoader(test_dataset, batch_size=256, shuffle=True, drop_last=False)
+test_loader = DataLoader(test_dataset, batch_size=128, shuffle=True, drop_last=False)
 test_dataset_size = len(test_dataset)
 
+max_train_acc_epochs = []
+max_train_accs = []
+final_train_accs = []
+min_train_loss_epochs = []
+min_train_losss = []
+final_train_losss = []
 
-mass = 5e-1
+max_test_acc_epochs = []
+max_test_accs = []
+final_test_accs = []
+min_test_loss_epochs = []
+min_test_losss = []
+final_test_losss = []
 
-epochs = 3
+# DONT CHANGE ANYTHING ABOVE THIS LINE
 
-learning_rate = 3e-1
+masses = [0, 5e-1, 9e-1]
 
-[neural_network, train_losses, test_losses, train_accuracies, test_accuracies] = train(train_loader, train_dataset_size, test_loader, test_dataset_size, mass=mass, epochs=epochs, learning_rate=learning_rate)
+epochss = [3]
 
+learning_rates = [3e-3, 3e-1]
+
+hyperparameter_grid = list(itertools.product(masses, epochss, learning_rates))
+
+for mass, epochs, learning_rate in hyperparameter_grid:
+    [neural_network, train_losses, test_losses, train_accuracies, test_accuracies] = train(train_loader,
+                                                                                           train_dataset_size,
+                                                                                           test_loader,
+                                                                                           test_dataset_size,
+                                                                                           mass=mass, epochs=epochs,
+                                                                                           learning_rate=learning_rate)
+
+    max_train_acc_epochs.append(train_accuracies.index(max(train_accuracies)) + 1)
+    max_train_accs.append(train_accuracies[max_train_acc_epochs[-1] - 1])
+    final_train_accs.append(train_accuracies[-1])
+    min_train_loss_epochs.append(train_losses.index(min(train_losses)) + 1)
+    min_train_losss.append(train_losses[min_train_loss_epochs[-1] - 1])
+    final_train_losss.append(train_losses[-1])
+
+    max_test_acc_epochs.append(test_accuracies.index(max(test_accuracies)) + 1)
+    max_test_accs.append(test_accuracies[max_test_acc_epochs[-1] - 1])
+    final_test_accs.append(test_accuracies[-1])
+    min_test_loss_epochs.append(test_losses.index(min(test_losses)) + 1)
+    min_test_losss.append(test_losses[min_test_loss_epochs[-1] - 1])
+    final_test_losss.append(test_losses[-1])
 
 # Plot of train vs test losses on the same axes
 plt.figure()
 plt.title("Loss: train vs test")
-plt.semilogy(np.array(range(1, epochs+1)), train_losses, label="train")
-plt.semilogy(np.array(range(1, epochs+1)), test_losses, label="test")
+plt.semilogy(np.array(range(1, epochs + 1)), train_losses, label="train")
+plt.semilogy(np.array(range(1, epochs + 1)), test_losses, label="test")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.legend()
@@ -72,13 +109,13 @@ plt.legend()
 figure, ax1 = plt.subplots()
 color = "tab:blue"
 ax1.set_title("Loss: train vs test")
-ax1.semilogy(np.array(range(1, epochs+1)), train_losses, color=color, label="train")
+ax1.semilogy(np.array(range(1, epochs + 1)), train_losses, color=color, label="train")
 ax1.set_ylabel("Train loss", color=color)
 ax1.tick_params(axis='y', labelcolor=color)
 
 ax2 = ax1.twinx()
 color = "tab:orange"
-ax2.semilogy(np.array(range(1, epochs+1)), test_losses, color=color, label="test")
+ax2.semilogy(np.array(range(1, epochs + 1)), test_losses, color=color, label="test")
 ax2.set_ylabel("Test loss", color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 
@@ -87,8 +124,8 @@ figure.tight_layout()
 # Plot of train vs test accuracies on the same axes
 plt.figure()
 plt.title("Accuracy: train vs test")
-plt.plot(np.array(range(1, epochs+1)), train_accuracies, label="train")
-plt.plot(np.array(range(1, epochs+1)), test_accuracies, label="test")
+plt.plot(np.array(range(1, epochs + 1)), train_accuracies, label="train")
+plt.plot(np.array(range(1, epochs + 1)), test_accuracies, label="test")
 plt.xlabel("Epochs")
 plt.ylabel("Accuracy")
 plt.legend()
@@ -97,13 +134,13 @@ plt.legend()
 figure, ax1 = plt.subplots()
 color = "tab:blue"
 ax1.set_title("Accuracy: train vs test")
-ax1.semilogy(np.array(range(1, epochs+1)), train_accuracies, color=color, label="train")
+ax1.semilogy(np.array(range(1, epochs + 1)), train_accuracies, color=color, label="train")
 ax1.set_ylabel("Train loss", color=color)
 ax1.tick_params(axis='y', labelcolor=color)
 
 ax2 = ax1.twinx()
 color = "tab:orange"
-ax2.semilogy(np.array(range(1, epochs+1)), test_accuracies, color=color, label="test")
+ax2.semilogy(np.array(range(1, epochs + 1)), test_accuracies, color=color, label="test")
 ax2.set_ylabel("Test loss", color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 
