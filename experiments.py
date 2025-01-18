@@ -78,9 +78,9 @@ final_test_losss = []
 
 # DONT CHANGE ANYTHING ABOVE THIS LINE
 
-masses = [0, 5e-1, 9e-1]
+masses = [0, 5e-1]
 
-epochss = [3]
+epochss = [1]
 
 learning_rates = [3e-3, 3e-1]
 
@@ -107,6 +107,41 @@ for mass, epochs, learning_rate in hyperparameter_grid:
     min_test_loss_epochs.append(test_losses.index(min(test_losses)) + 1)
     min_test_losss.append(test_losses[min_test_loss_epochs[-1] - 1])
     final_test_losss.append(test_losses[-1])
+
+
+max_train_acc_epochs = np.array(max_train_acc_epochs)
+max_train_accs = np.array(max_train_accs)
+final_train_accs = np.array(final_train_accs)
+min_train_loss_epochs = np.array(min_train_loss_epochs)
+min_train_losss = np.array(min_train_losss)
+final_train_losss = np.array(final_train_losss)
+
+max_test_acc_epochs = np.array(max_test_acc_epochs)
+max_test_accs = np.array(max_test_accs)
+final_test_accs = np.array(final_test_accs)
+min_test_loss_epochs = np.array(min_test_loss_epochs)
+min_test_losss = np.array(min_test_losss)
+final_test_losss = np.array(final_test_losss)
+
+# Convert hyperparameter grid to a numpy array
+hyperparameter_grid = np.array(hyperparameter_grid, dtype=object)
+
+np.savez(
+    "training_results.npz",
+    max_train_acc_epochs=max_train_acc_epochs,
+    max_train_accs=max_train_accs,
+    final_train_accs=final_train_accs,
+    min_train_loss_epochs=min_train_loss_epochs,
+    min_train_losss=min_train_losss,
+    final_train_losss=final_train_losss,
+    max_test_acc_epochs=max_test_acc_epochs,
+    max_test_accs=max_test_accs,
+    final_test_accs=final_test_accs,
+    min_test_loss_epochs=min_test_loss_epochs,
+    min_test_losss=min_test_losss,
+    final_test_losss=final_test_losss,
+    hyperparameter_grid=hyperparameter_grid
+)
 
 # Plot of train vs test losses on the same axes
 plt.figure()
