@@ -34,9 +34,10 @@ test_dataset = list(zip(test_images, test_labels))
 test_loader = DataLoader(test_dataset, batch_size=128, shuffle=True, drop_last=False)
 test_dataset_size = len(test_dataset)
 
-masses = [0, 3e-1, 4e-1, 5e-1, 7e-1, 9e-1]
-epochss = [1]
-learning_rates = [3e-3, 3e-1, 3e-2, 5e-1]
+# masses = [0, 3e-1, 4e-1, 5e-1, 7e-1, 9e-1]
+masses = np.linspace(0, 1, 10)
+epochss = [100]
+learning_rates = np.linspace(1e-6, 10, 10)
 hyperparameter_grid = list(itertools.product(masses, epochss, learning_rates))
 
 

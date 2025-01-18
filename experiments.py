@@ -78,9 +78,9 @@ final_test_losss = []
 
 # DONT CHANGE ANYTHING ABOVE THIS LINE
 
-masses = [0, 3e-1, 4e-1, 5e-1, 7e-1, 9e-1]
-epochss = [1]
-learning_rates = [3e-3, 3e-1, 3e-2, 5e-1]
+masses = [0, 5e-1]
+epochss = [10]
+learning_rates = [3e-6, 3e-3, 3e-1, 3]
 
 hyperparameter_grid = list(itertools.product(masses, epochss, learning_rates))
 
