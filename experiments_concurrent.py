@@ -41,7 +41,7 @@ learning_rates = np.linspace(1e-6, 10, 10)
 hyperparameter_grid = list(itertools.product(masses, epochss, learning_rates))
 
 
-def simulate_and_record(lock, shared_results, mass, epochs, learning_rate, i):
+def simulate_and_record(shared_results, mass, epochs, learning_rate, i):
     """Run a single training simulation and record the results."""
     [neural_network, train_losses, test_losses, train_accuracies, test_accuracies] = train(
         train_loader, train_dataset_size, test_loader, test_dataset_size,
@@ -64,6 +64,20 @@ def simulate_and_record(lock, shared_results, mass, epochs, learning_rate, i):
     shared_results['final_test_losss'].append(test_losses[-1])
 
 
+def run_batch(batch, lock, shared_results):
+    """Run a batch of simulations."""
+    processes = []
+    for i, (mass, epochs, learning_rate) in enumerate(batch):
+        print(f"{i}: Started with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs})")
+        p = mp.Process(target=simulate_and_record, args=(lock, shared_results, mass, epochs, learning_rate, i))
+        processes.append(p)
+        p.start()
+
+    # Wait for all processes in the batch to complete
+    for p in processes:
+        p.join()
+
+
 def main():
     # Create shared structures and lock
     manager = mp.Manager()
@@ -83,19 +97,16 @@ def main():
     })
     lock = manager.Lock()
 
-    # Parallelize the training simulations
-    processes = []
-    i = 0
-    for mass, epochs, learning_rate in hyperparameter_grid:
-        print(f"{i}: Training with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs})")
-        i += 1
-        p = mp.Process(target=simulate_and_record, args=(lock, shared_results, mass, epochs, learning_rate, i))
-        processes.append(p)
-        p.start()
+    # Specify the batch size (adjust based on your system's performance)
+    batch_size = 10
 
-    # Wait for all processes to complete
-    for p in processes:
-        p.join()
+    # Split hyperparameter_grid into batches
+    batches = [hyperparameter_grid[i:i + batch_size] for i in range(0, len(hyperparameter_grid), batch_size)]
+
+    # Process each batch
+    for i, batch in enumerate(batches):
+        print(f"Processing batch {1}/{len(batches)}")
+        run_batch(batch, lock, shared_results)
 
     # Save results
     np.savez(
