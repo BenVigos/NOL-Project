@@ -25,7 +25,7 @@ class NeuralNetwork:
     r"""Neural network class.
     """
 
-    def __init__(self, layers, activation_functions, mass=0):
+    def __init__(self, layers, activation_functions, seed=42, mass=0):
         self.number_of_layers = len(layers) - 1
         self.biases = []
         self.weights = []
@@ -33,6 +33,8 @@ class NeuralNetwork:
         self.bias_deltas = []
         self.activation_functions = activation_functions
         self.mass = mass
+
+        np.random.seed(seed)
 
         if len(activation_functions) != self.number_of_layers:
             raise ValueError("Number of activation functions should match the number of layers.")

@@ -50,18 +50,30 @@ test_dataset = list(zip(test_images, test_labels))
 test_loader = DataLoader(test_dataset, batch_size=128, shuffle=True, drop_last=False)
 test_dataset_size = len(test_dataset)
 
+#An array of the epochs at which the best train accuracies were achieved
 max_train_acc_epochs = []
+#An array of the best train accuracies
 max_train_accs = []
+#An array of the final train accuracies (last epoch)
 final_train_accs = []
+#An array of the epochs at which the best train losses were achieved
 min_train_loss_epochs = []
+#An array of the best train losses
 min_train_losss = []
+#An array of the final train losses (last epoch)
 final_train_losss = []
 
+#An array of the epochs at which the best test accuracies were achieved
 max_test_acc_epochs = []
+#An array of the best test accuracies
 max_test_accs = []
+#An array of the final test losses (last epoch)
 final_test_accs = []
+#An array of the epochs at which the best test losses were achieved
 min_test_loss_epochs = []
+#An array of the best test losses
 min_test_losss = []
+#An array of the final test losses (last epoch)
 final_test_losss = []
 
 # DONT CHANGE ANYTHING ABOVE THIS LINE
