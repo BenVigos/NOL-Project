@@ -78,15 +78,16 @@ final_test_losss = []
 
 # DONT CHANGE ANYTHING ABOVE THIS LINE
 
-masses = [0, 5e-1]
-
+masses = [0, 3e-1, 4e-1, 5e-1, 7e-1, 9e-1]
 epochss = [1]
-
-learning_rates = [3e-3, 3e-1]
+learning_rates = [3e-3, 3e-1, 3e-2, 5e-1]
 
 hyperparameter_grid = list(itertools.product(masses, epochss, learning_rates))
 
+i = 0
 for mass, epochs, learning_rate in hyperparameter_grid:
+    print(f"{i}: Training with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs})")
+    i+= 1
     [neural_network, train_losses, test_losses, train_accuracies, test_accuracies] = train(train_loader,
                                                                                            train_dataset_size,
                                                                                            test_loader,
@@ -108,6 +109,8 @@ for mass, epochs, learning_rate in hyperparameter_grid:
     min_test_losss.append(test_losses[min_test_loss_epochs[-1] - 1])
     final_test_losss.append(test_losses[-1])
 
+
+#Save the data
 
 max_train_acc_epochs = np.array(max_train_acc_epochs)
 max_train_accs = np.array(max_train_accs)
@@ -143,79 +146,3 @@ np.savez(
     hyperparameter_grid=hyperparameter_grid
 )
 
-# Plot of train vs test losses on the same axes
-plt.figure()
-plt.title("Loss: train vs test")
-plt.semilogy(np.array(range(1, epochs + 1)), train_losses, label="train")
-plt.semilogy(np.array(range(1, epochs + 1)), test_losses, label="test")
-plt.xlabel("Epochs")
-plt.ylabel("Loss")
-plt.legend()
-
-# Plot of train vs test loss on the x-axis but with different y-axis
-figure, ax1 = plt.subplots()
-color = "tab:blue"
-ax1.set_title("Loss: train vs test")
-ax1.semilogy(np.array(range(1, epochs + 1)), train_losses, color=color, label="train")
-ax1.set_ylabel("Train loss", color=color)
-ax1.tick_params(axis='y', labelcolor=color)
-
-ax2 = ax1.twinx()
-color = "tab:orange"
-ax2.semilogy(np.array(range(1, epochs + 1)), test_losses, color=color, label="test")
-ax2.set_ylabel("Test loss", color=color)
-ax2.tick_params(axis='y', labelcolor=color)
-
-figure.tight_layout()
-
-# Plot of train vs test accuracies on the same axes
-plt.figure()
-plt.title("Accuracy: train vs test")
-plt.plot(np.array(range(1, epochs + 1)), train_accuracies, label="train")
-plt.plot(np.array(range(1, epochs + 1)), test_accuracies, label="test")
-plt.xlabel("Epochs")
-plt.ylabel("Accuracy")
-plt.legend()
-
-# Plot of train vs test accuracies on the x-axis but with different y-axis
-figure, ax1 = plt.subplots()
-color = "tab:blue"
-ax1.set_title("Accuracy: train vs test")
-ax1.semilogy(np.array(range(1, epochs + 1)), train_accuracies, color=color, label="train")
-ax1.set_ylabel("Train loss", color=color)
-ax1.tick_params(axis='y', labelcolor=color)
-
-ax2 = ax1.twinx()
-color = "tab:orange"
-ax2.semilogy(np.array(range(1, epochs + 1)), test_accuracies, color=color, label="test")
-ax2.set_ylabel("Test loss", color=color)
-ax2.tick_params(axis='y', labelcolor=color)
-
-figure.tight_layout()
-
-# We take a random starting point for 10 subsequent images we want to take a greater look at.
-r = np.random.randint(0, 9_990)
-
-# We go over 10 images starting with r, plot them and show the prediction the network makes next to them.
-plt.figure()
-for i in range(9):
-    plt.rcParams["figure.figsize"] = (15, 10)
-    plt.subplot(3, 3, 1 + i)
-    image = Value(np.array(test_images[r + i]), "x")
-    plt.imshow(image.data.reshape(28, 28), cmap=plt.get_cmap('gray'))
-    plt.text(-5, 45,
-             f'True value:\n{test_labels[r + i]}: {test_y[r + i]}\n'
-             f'Output:\n'
-             f'[{neural_network(image)[0]:.2f} '  # needs __getitem__ method in Value class!
-             f'{neural_network(image)[1]:.2f} '
-             f'{neural_network(image)[2]:.2f} '
-             f'{neural_network(image)[3]:.2f} '
-             f'{neural_network(image)[4]:.2f}\n'
-             f'{neural_network(image)[5]:.2f} '
-             f'{neural_network(image)[6]:.2f} '
-             f'{neural_network(image)[7]:.2f} '
-             f'{neural_network(image)[8]:.2f} '
-             f'{neural_network(image)[9]:.2f}]: {np.argmax(neural_network(image).data)}')
-
-plt.subplots_adjust(hspace=.8)
-plt.show()
