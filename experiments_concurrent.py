@@ -37,7 +37,7 @@ test_dataset_size = len(test_dataset)
 # masses = [0, 3e-1, 4e-1, 5e-1, 7e-1, 9e-1]
 masses = np.linspace(0, 1, 10)
 epochss = [100]
-learning_rates = np.linspace(1e-6, 10, 10)
+learning_rates = [1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 5e-1, 1, 10]
 hyperparameter_grid = list(itertools.product(masses, epochss, learning_rates))
 
 
@@ -69,7 +69,7 @@ def run_batch(batch, lock, shared_results):
     processes = []
     for i, (mass, epochs, learning_rate) in enumerate(batch):
         print(f"{i}: Started with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs})")
-        p = mp.Process(target=simulate_and_record, args=(lock, shared_results, mass, epochs, learning_rate, i))
+        p = mp.Process(target=simulate_and_record, args=(shared_results, mass, epochs, learning_rate, i))
         processes.append(p)
         p.start()
 
