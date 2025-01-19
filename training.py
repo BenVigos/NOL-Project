@@ -17,8 +17,6 @@ def train(train_loader, train_dataset_size, test_loader, test_dataset_size, mass
         layers=[784, 256, 128, 64, 10],
         activation_functions=[logi, logi, logi, softmax], mass=mass
     )
-    cw = [0 for weight in neural_network.weights]
-    cb = [0 for bias in neural_network.biases]
     # Set training configuration
     learning_rate = learning_rate
     epochs = epochs
@@ -58,7 +56,7 @@ def train(train_loader, train_dataset_size, test_loader, test_dataset_size, mass
             loss.backward()
 
             # Update the weights and biases using the chosen algorithm, in this case gradient descent.
-            neural_network.adagrad(learning_rate, cw, cb)
+            neural_network.nesterov_descent(learning_rate)
 
             # Store the loss for this batch.
             train_loss += loss.data
