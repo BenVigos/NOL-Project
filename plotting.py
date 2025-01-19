@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.io import savemat
 
 # Load the data
-data = np.load("training_results_reproduction_of_error.npz", allow_pickle=True)
+data = np.load("training_results_batches.npz", allow_pickle=True)
 
 # Extract the data
 masses = data["masses"]

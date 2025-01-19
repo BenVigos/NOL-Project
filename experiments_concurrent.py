@@ -31,18 +31,19 @@ train_dataset = list(zip(train_images, train_labels))
 test_dataset = list(zip(test_images, test_labels))
 
 # masses = [0, 3e-1, 4e-1, 5e-1, 7e-1, 9e-1]
-masses = np.linspace(0, 1, 3)
+masses = [0]
 # masses = np.linspace(0, 1, 10)
-epochss = [2]
+batch_sizes = [128, 1028]
 learning_rates = [1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 5e-1, 1, 10]
-hyperparameter_grid = list(itertools.product(masses, epochss, learning_rates))
+epochs = 2
+hyperparameter_grid = list(itertools.product(masses, batch_sizes, learning_rates))
 
 
-def simulate_and_record(lock, shared_results, mass, epochs, learning_rate, i):
+def simulate_and_record(lock, shared_results, mass, batch_size, learning_rate, i, epochs):
     """Run a single training simulation and record the results."""
     # Create a new DataLoader instance for each process
-    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, drop_last=False)
-    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=True, drop_last=False)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=False)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, drop_last=False)
     train_dataset_size = len(train_dataset)
     test_dataset_size = len(test_dataset)
 
@@ -54,6 +55,8 @@ def simulate_and_record(lock, shared_results, mass, epochs, learning_rate, i):
     with lock:
         shared_results['masses'].append(mass)
         shared_results['learning_rates'].append(learning_rate)
+        shared_results['batch_sizes'].append(batch_size)
+
         shared_results['max_train_acc_epochs'].append(train_accuracies.index(max(train_accuracies)) + 1)
         shared_results['max_train_accs'].append(max(train_accuracies))
         shared_results['final_train_accs'].append(train_accuracies[-1])
@@ -68,16 +71,16 @@ def simulate_and_record(lock, shared_results, mass, epochs, learning_rate, i):
         shared_results['min_test_losss'].append(min(test_losses))
         shared_results['final_test_losss'].append(test_losses[-1])
 
-    print(f"{i}: Done with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs}) \n "
+    print(f"{i}: Done with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {batch_size}) \n "
           f"min test loss: {min(test_losses)}, final test loss: {test_losses[-1]}")
 
 
-def run_batch(batch, lock, shared_results):
+def run_batch(batch, lock, shared_results, epochs):
     """Run a batch of simulations."""
     processes = []
-    for i, (mass, epochs, learning_rate) in enumerate(batch):
-        print(f"{i}: Started with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs})")
-        p = mp.Process(target=simulate_and_record, args=(lock, shared_results, mass, epochs, learning_rate, i))
+    for i, (mass, batch_size, learning_rate) in enumerate(batch):
+        print(f"{i}: Started with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {batch_size})")
+        p = mp.Process(target=simulate_and_record, args=(lock, shared_results, mass, batch_size, learning_rate, i, epochs))
         processes.append(p)
         p.start()
 
@@ -92,6 +95,7 @@ def main():
     shared_results = manager.dict({
         'masses': manager.list(),
         'learning_rates': manager.list(),
+        'batch_sizes': manager.list(),
         'max_train_acc_epochs': manager.list(),
         'max_train_accs': manager.list(),
         'final_train_accs': manager.list(),
@@ -108,22 +112,23 @@ def main():
     lock = manager.Lock()
 
     # Specify the batch size (adjust based on your system's performance)
-    batch_size = 10
+    sim_batch_size = 10
 
     # Split hyperparameter_grid into batches
-    batches = [hyperparameter_grid[i:i + batch_size] for i in range(0, len(hyperparameter_grid), batch_size)]
+    batches = [hyperparameter_grid[i:i + sim_batch_size] for i in range(0, len(hyperparameter_grid), sim_batch_size)]
 
     # Process each batch
     for i, batch in enumerate(batches):
         print(f"Processing batch {i+1}/{len(batches)}")
-        run_batch(batch, lock, shared_results)
+        run_batch(batch, lock, shared_results, epochs=epochs)
 
     # Save results
     np.savez(
-        "training_results_reproduction_of_error.npz",
+        "training_results_batches.npz",
 
     masses = shared_results["masses"],
     learning_rates = shared_results["learning_rates"],
+    batch_sizes = shared_results["batch_sizes"],
     max_train_acc_epochs = shared_results["max_train_acc_epochs"],
     max_train_accs = shared_results["max_train_accs"],
     final_train_accs = shared_results["final_train_accs"],
