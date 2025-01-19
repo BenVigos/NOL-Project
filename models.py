@@ -81,3 +81,12 @@ class NeuralNetwork:
             delta = self.bias_deltas[i]
             delta.data = delta.data * self.mass + learning_rate * bias.grad
             bias.data -= bias.grad
+
+    def adagrad(self, learning_rate, cw, cb):
+        for index, weight in enumerate(self.weights):
+            cw[index] += np.square(weight.grad)
+            weight.data -= (learning_rate / np.sqrt(1e-7 + cw[index])) * weight.grad
+        for k, bias in enumerate(self.biases):
+            cb[k] += np.square(bias.grad)
+            bias.data -= (learning_rate / np.sqrt(1e-7 + cb[k])) * bias.grad
+
