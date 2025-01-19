@@ -33,7 +33,7 @@ test_dataset = list(zip(test_images, test_labels))
 masses = np.linspace(0, 1, 10)
 batch_sizes = [128]
 learning_rates = [1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 5e-1, 1, 10]
-epochs = 2
+epochs = 100
 hyperparameter_grid = list(itertools.product(masses, batch_sizes, learning_rates))
 
 
@@ -122,7 +122,7 @@ def main():
 
     # Save results
     np.savez(
-        "training_results_masses_short.npz",
+        "training_results_masses_full.npz",
 
     masses = shared_results["masses"],
     learning_rates = shared_results["learning_rates"],

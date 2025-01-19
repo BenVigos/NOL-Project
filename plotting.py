@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.io import savemat
 
 # Load the data
-data = np.load("training_results_batches.npz", allow_pickle=True)
+data = np.load("training_results_masses_short.npz", allow_pickle=True)
 
 # Extract the data
 masses = data["masses"]
@@ -20,8 +20,8 @@ min_test_loss_epochs = data["min_test_loss_epochs"]
 max_train_accs = data["max_train_accs"]
 max_train_acc_epochs = data["max_train_acc_epochs"]
 final_train_accs = data["final_train_accs"]
-max_test_acc_epochs = data["max_test_accs"]
-max_test_accs = data["max_test_acc_epochs"]
+max_test_accs = data["max_test_accs"]
+max_test_accs_epochs = data["max_test_acc_epochs"]
 final_test_accs = data["final_test_accs"]
 
 # Filter learning rates and masses where min_test_losss > 100
@@ -37,7 +37,7 @@ print("Done")
 
 
 # Save to a .mat file
-savemat("training_results_test.mat", data)
+savemat("training_results_masses_short.mat", data)
 
 
 # Helper function for 3D plotting
