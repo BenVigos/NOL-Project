@@ -114,9 +114,4 @@ def train(train_loader, train_dataset_size, test_loader, test_dataset_size, mass
         test_losses.append(test_loss)
         test_accuracies.append(correctly_classified / test_dataset_size)
 
-    if (i!=-1):
-        print(f"{i}: Done with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs})")
-    else:
-        print(f"Done with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs})")
-
     return [neural_network, train_losses, test_losses, train_accuracies, test_accuracies]

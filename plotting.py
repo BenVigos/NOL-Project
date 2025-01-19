@@ -3,11 +3,12 @@ import matplotlib.pyplot as plt
 from scipy.io import savemat
 
 # Load the data
-data = np.load("training_results.npz", allow_pickle=True)
+data = np.load("training_results_reproduction_of_error.npz", allow_pickle=True)
 
 # Extract the data
-hyperparameter_grid = data["hyperparameter_grid"]
-masses, epochs, learning_rates = zip(*hyperparameter_grid)
+masses = data["masses"]
+learning_rates = data["learning_rates"]
+epochs = np.ones(len(data)-1)*100
 min_train_losss = data["min_train_losss"]
 min_train_loss_epochs = data["min_train_loss_epochs"]
 final_train_losss = data["final_train_losss"]
@@ -23,11 +24,20 @@ max_test_acc_epochs = data["max_test_accs"]
 max_test_accs = data["max_test_acc_epochs"]
 final_test_accs = data["final_test_accs"]
 
+# Filter learning rates and masses where min_test_losss > 100
+exceeding_threshold_indices = np.where(min_test_losss > 100)[0]
+learning_rates_exceeding = np.array(learning_rates)[exceeding_threshold_indices]
+masses_exceeding = np.array(masses)[exceeding_threshold_indices]
 
+# Print the results
+for lr, mass, loss in zip(learning_rates_exceeding, masses_exceeding, min_test_losss[exceeding_threshold_indices]):
+    print(f"Learning Rate: {lr}, Mass: {mass}, Min Test Loss: {loss}")
+
+print("Done")
 
 
 # Save to a .mat file
-savemat("training_results.mat", data)
+savemat("training_results_test.mat", data)
 
 
 # Helper function for 3D plotting

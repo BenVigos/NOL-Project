@@ -27,41 +27,49 @@ test_labels = np.zeros((10_000, 10))
 test_labels[np.arange(10_000), test_y] = 1
 
 train_dataset = list(zip(train_images, train_labels))
-train_loader = DataLoader(train_dataset, batch_size=128, shuffle=False, drop_last=False)
-train_dataset_size = len(train_dataset)
 
 test_dataset = list(zip(test_images, test_labels))
-test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, drop_last=False)
-test_dataset_size = len(test_dataset)
 
 # masses = [0, 3e-1, 4e-1, 5e-1, 7e-1, 9e-1]
-masses = np.linspace(0, 1, 10)
-epochss = [100]
+masses = np.linspace(0, 1, 3)
+# masses = np.linspace(0, 1, 10)
+epochss = [2]
 learning_rates = [1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 5e-1, 1, 10]
 hyperparameter_grid = list(itertools.product(masses, epochss, learning_rates))
 
 
-def simulate_and_record(shared_results, mass, epochs, learning_rate, i):
+def simulate_and_record(lock, shared_results, mass, epochs, learning_rate, i):
     """Run a single training simulation and record the results."""
+    # Create a new DataLoader instance for each process
+    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, drop_last=False)
+    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=True, drop_last=False)
+    train_dataset_size = len(train_dataset)
+    test_dataset_size = len(test_dataset)
+
     [neural_network, train_losses, test_losses, train_accuracies, test_accuracies] = train(
         train_loader, train_dataset_size, test_loader, test_dataset_size,
         mass=mass, epochs=epochs, learning_rate=learning_rate, i=i
     )
 
+    with lock:
+        shared_results['masses'].append(mass)
+        shared_results['learning_rates'].append(learning_rate)
+        shared_results['max_train_acc_epochs'].append(train_accuracies.index(max(train_accuracies)) + 1)
+        shared_results['max_train_accs'].append(max(train_accuracies))
+        shared_results['final_train_accs'].append(train_accuracies[-1])
+        shared_results['min_train_loss_epochs'].append(train_losses.index(min(train_losses)) + 1)
+        shared_results['min_train_losss'].append(min(train_losses))
+        shared_results['final_train_losss'].append(train_losses[-1])
 
-    shared_results['max_train_acc_epochs'].append(train_accuracies.index(max(train_accuracies)) + 1)
-    shared_results['max_train_accs'].append(max(train_accuracies))
-    shared_results['final_train_accs'].append(train_accuracies[-1])
-    shared_results['min_train_loss_epochs'].append(train_losses.index(min(train_losses)) + 1)
-    shared_results['min_train_losss'].append(min(train_losses))
-    shared_results['final_train_losss'].append(train_losses[-1])
+        shared_results['max_test_acc_epochs'].append(test_accuracies.index(max(test_accuracies)) + 1)
+        shared_results['max_test_accs'].append(max(test_accuracies))
+        shared_results['final_test_accs'].append(test_accuracies[-1])
+        shared_results['min_test_loss_epochs'].append(test_losses.index(min(test_losses)) + 1)
+        shared_results['min_test_losss'].append(min(test_losses))
+        shared_results['final_test_losss'].append(test_losses[-1])
 
-    shared_results['max_test_acc_epochs'].append(test_accuracies.index(max(test_accuracies)) + 1)
-    shared_results['max_test_accs'].append(max(test_accuracies))
-    shared_results['final_test_accs'].append(test_accuracies[-1])
-    shared_results['min_test_loss_epochs'].append(test_losses.index(min(test_losses)) + 1)
-    shared_results['min_test_losss'].append(min(test_losses))
-    shared_results['final_test_losss'].append(test_losses[-1])
+    print(f"{i}: Done with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs}) \n "
+          f"min test loss: {min(test_losses)}, final test loss: {test_losses[-1]}")
 
 
 def run_batch(batch, lock, shared_results):
@@ -69,7 +77,7 @@ def run_batch(batch, lock, shared_results):
     processes = []
     for i, (mass, epochs, learning_rate) in enumerate(batch):
         print(f"{i}: Started with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {epochs})")
-        p = mp.Process(target=simulate_and_record, args=(shared_results, mass, epochs, learning_rate, i))
+        p = mp.Process(target=simulate_and_record, args=(lock, shared_results, mass, epochs, learning_rate, i))
         processes.append(p)
         p.start()
 
@@ -82,6 +90,8 @@ def main():
     # Create shared structures and lock
     manager = mp.Manager()
     shared_results = manager.dict({
+        'masses': manager.list(),
+        'learning_rates': manager.list(),
         'max_train_acc_epochs': manager.list(),
         'max_train_accs': manager.list(),
         'final_train_accs': manager.list(),
@@ -105,25 +115,27 @@ def main():
 
     # Process each batch
     for i, batch in enumerate(batches):
-        print(f"Processing batch {i}/{len(batches)}")
+        print(f"Processing batch {i+1}/{len(batches)}")
         run_batch(batch, lock, shared_results)
 
     # Save results
     np.savez(
-        "training_results_no_shuffle.npz",
-        max_train_acc_epochs=np.array(shared_results['max_train_acc_epochs']),
-        max_train_accs=np.array(shared_results['max_train_accs']),
-        final_train_accs=np.array(shared_results['final_train_accs']),
-        min_train_loss_epochs=np.array(shared_results['min_train_loss_epochs']),
-        min_train_losss=np.array(shared_results['min_train_losss']),
-        final_train_losss=np.array(shared_results['final_train_losss']),
-        max_test_acc_epochs=np.array(shared_results['max_test_acc_epochs']),
-        max_test_accs=np.array(shared_results['max_test_accs']),
-        final_test_accs=np.array(shared_results['final_test_accs']),
-        min_test_loss_epochs=np.array(shared_results['min_test_loss_epochs']),
-        min_test_losss=np.array(shared_results['min_test_losss']),
-        final_test_losss=np.array(shared_results['final_test_losss']),
-        hyperparameter_grid=np.array(hyperparameter_grid, dtype=object)
+        "training_results_reproduction_of_error.npz",
+
+    masses = shared_results["masses"],
+    learning_rates = shared_results["learning_rates"],
+    max_train_acc_epochs = shared_results["max_train_acc_epochs"],
+    max_train_accs = shared_results["max_train_accs"],
+    final_train_accs = shared_results["final_train_accs"],
+    min_train_loss_epochs = shared_results["min_train_loss_epochs"],
+    min_train_losss = shared_results["min_train_losss"],
+    final_train_losss = shared_results["final_train_losss"],
+    max_test_acc_epochs = shared_results["max_test_acc_epochs"],
+    max_test_accs = shared_results["max_test_accs"],
+    final_test_accs = shared_results["final_test_accs"],
+    min_test_loss_epochs = shared_results["min_test_loss_epochs"],
+    min_test_losss = shared_results["min_test_losss"],
+    final_test_losss = shared_results["final_test_losss"],
     )
 
 
