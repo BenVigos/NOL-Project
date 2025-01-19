@@ -27,11 +27,11 @@ test_labels = np.zeros((10_000, 10))
 test_labels[np.arange(10_000), test_y] = 1
 
 train_dataset = list(zip(train_images, train_labels))
-train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, drop_last=False)
+train_loader = DataLoader(train_dataset, batch_size=128, shuffle=False, drop_last=False)
 train_dataset_size = len(train_dataset)
 
 test_dataset = list(zip(test_images, test_labels))
-test_loader = DataLoader(test_dataset, batch_size=128, shuffle=True, drop_last=False)
+test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, drop_last=False)
 test_dataset_size = len(test_dataset)
 
 # masses = [0, 3e-1, 4e-1, 5e-1, 7e-1, 9e-1]
@@ -105,12 +105,12 @@ def main():
 
     # Process each batch
     for i, batch in enumerate(batches):
-        print(f"Processing batch {1}/{len(batches)}")
+        print(f"Processing batch {i}/{len(batches)}")
         run_batch(batch, lock, shared_results)
 
     # Save results
     np.savez(
-        "training_results.npz",
+        "training_results_no_shuffle.npz",
         max_train_acc_epochs=np.array(shared_results['max_train_acc_epochs']),
         max_train_accs=np.array(shared_results['max_train_accs']),
         final_train_accs=np.array(shared_results['final_train_accs']),
