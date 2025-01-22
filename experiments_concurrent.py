@@ -121,7 +121,7 @@ def main():
 
     # Save results
     np.savez(
-        "training_results_masses_full.npz",
+        "training_results_seeds.npz",
 
     masses = shared_results["masses"],
     seeds = shared_results["seeds"],
