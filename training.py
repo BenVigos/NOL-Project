@@ -12,10 +12,10 @@ from models import NeuralNetwork
 from supplementary import Value, load_mnist
 
 
-def train(train_loader, train_dataset_size, test_loader, test_dataset_size, mass=0, learning_rate=3e-3, epochs=10, i=-1):
+def train(train_loader, train_dataset_size, test_loader, test_dataset_size, mass=0, learning_rate=3e-3, epochs=10, i=-1, seed=42):
     neural_network = NeuralNetwork(
         layers=[784, 256, 128, 64, 10],
-        activation_functions=[logi, logi, logi, softmax], mass=mass
+        activation_functions=[logi, logi, logi, softmax], mass=mass, seed=seed
     )
     # Set training configuration
     learning_rate = learning_rate

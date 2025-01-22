@@ -5,10 +5,7 @@ import multiprocessing as mp
 import numpy as np
 from tqdm import tqdm
 
-from activation_functions import logi, softmax
 from data_loader import DataLoader
-from loss_functions import mse_loss
-from models import NeuralNetwork
 from supplementary import Value, load_mnist
 from training import train
 
@@ -30,14 +27,15 @@ train_dataset = list(zip(train_images, train_labels))
 
 test_dataset = list(zip(test_images, test_labels))
 
-masses = np.linspace(0, 1, 10)
+masses = [0.55555556]
 batch_sizes = [128]
 learning_rates = [1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 5e-1, 1, 10]
-epochs = 100
-hyperparameter_grid = list(itertools.product(masses, batch_sizes, learning_rates))
+seeds = [914, 693, 640, 556, 78, 431, 199, 130, 81, 43]
+epochs = 10
+hyperparameter_grid = list(itertools.product(masses, batch_sizes, learning_rates, seeds))
 
 
-def simulate_and_record(lock, shared_results, mass, batch_size, learning_rate, i, epochs):
+def simulate_and_record(lock, shared_results, mass, batch_size, learning_rate, i, epochs, seed):
     """Run a single training simulation and record the results."""
     # Create a new DataLoader instance for each process
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=False)
@@ -47,11 +45,11 @@ def simulate_and_record(lock, shared_results, mass, batch_size, learning_rate, i
 
     [neural_network, train_losses, test_losses, train_accuracies, test_accuracies] = train(
         train_loader, train_dataset_size, test_loader, test_dataset_size,
-        mass=mass, epochs=epochs, learning_rate=learning_rate, i=i
-    )
+        mass=mass, epochs=epochs, learning_rate=learning_rate, i=i, seed=seed)
 
     with lock:
         shared_results['masses'].append(mass)
+        shared_results['seeds'].append(seed)
         shared_results['learning_rates'].append(learning_rate)
         shared_results['batch_sizes'].append(batch_size)
 
@@ -76,9 +74,9 @@ def simulate_and_record(lock, shared_results, mass, batch_size, learning_rate, i
 def run_batch(batch, lock, shared_results, epochs):
     """Run a batch of simulations."""
     processes = []
-    for i, (mass, batch_size, learning_rate) in enumerate(batch):
-        print(f"{i}: Started with (mass | learning rate | epochs) : ({mass} | {learning_rate} | {batch_size})")
-        p = mp.Process(target=simulate_and_record, args=(lock, shared_results, mass, batch_size, learning_rate, i, epochs))
+    for i, (mass, batch_size, learning_rate, seed) in enumerate(batch):
+        print(f"{i}: Started with (mass | learning rate | batch size | seed | epochs) : ({mass} | {learning_rate} | {batch_size} | {seed} | {epochs})")
+        p = mp.Process(target=simulate_and_record, args=(lock, shared_results, mass, batch_size, learning_rate, i, epochs, seed))
         processes.append(p)
         p.start()
 
@@ -92,6 +90,7 @@ def main():
     manager = mp.Manager()
     shared_results = manager.dict({
         'masses': manager.list(),
+        'seeds': manager.list(),
         'learning_rates': manager.list(),
         'batch_sizes': manager.list(),
         'max_train_acc_epochs': manager.list(),
@@ -125,6 +124,7 @@ def main():
         "training_results_masses_full.npz",
 
     masses = shared_results["masses"],
+    seeds = shared_results["seeds"],
     learning_rates = shared_results["learning_rates"],
     batch_sizes = shared_results["batch_sizes"],
     max_train_acc_epochs = shared_results["max_train_acc_epochs"],

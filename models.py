@@ -34,6 +34,8 @@ class NeuralNetwork:
         self.activation_functions = activation_functions
         self.mass = mass
 
+        print(f"seed: {seed}")
+
         np.random.seed(seed)
 
         if len(activation_functions) != self.number_of_layers:

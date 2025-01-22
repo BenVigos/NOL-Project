@@ -78,7 +78,7 @@ final_test_losss = []
 
 # DONT CHANGE ANYTHING ABOVE THIS LINE
 
-masses = [0.222222222222]
+masses = [0.55555556]
 epochss = [100]
 learning_rates = [1e-1]
 

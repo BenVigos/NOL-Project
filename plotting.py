@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.io import savemat
 
 # Load the data
-data = np.load("training_results_masses_short.npz", allow_pickle=True)
+data = np.load("training_results_masses_full.npz", allow_pickle=True)
 
 # Extract the data
 masses = data["masses"]
@@ -37,7 +37,7 @@ print("Done")
 
 
 # Save to a .mat file
-savemat("training_results_masses_short.mat", data)
+savemat("training_results_masses_full.mat", data)
 
 
 # Helper function for 3D plotting
