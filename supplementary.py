@@ -46,15 +46,32 @@ class Value:
         result._backward_gradient_step = _backward_gradient_step
         return result
 
+
+    def __rmul__(self, other):
+        """Handles scalar * Value."""
+        return self * other
+
     def __mul__(self, other):
-        """This function is called when you multiply two Value instances with each other. The arguments `self` and
+        """This function is called when you multiply two Value instances with each other or a scalar with a value. The arguments `self` and
         `other` will be the left Value instance and the right Value instance respectfully.
         """
-        result = Value(self.data * other.data, f"{self.expr}*{other.expr}", (self, other))
+        if isinstance(other, Value):
+            result_value = self.data * other.data
+            result_expr = f"{self.expr}*{other.expr}"
+            children = (self, other)
+        else:
+            result_value = self.data * other
+            result_expr = f"{self.expr}*{other}"
+            children = (self,)
+        result = Value(result_value, result_expr, children)
 
         def _backward_gradient_step():
-            self.grad += other.data * result.grad
-            other.grad += self.data * result.grad
+            if isinstance(other, Value):
+                self.grad += other.data * result.grad
+                other.grad += self.data * result.grad
+            else:
+                self.grad += other * result.grad
+
 
         result._backward_gradient_step = _backward_gradient_step
         return result
